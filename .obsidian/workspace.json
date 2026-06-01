@@ -1,0 +1,222 @@
+{
+  "main": {
+    "id": "d5a5577c804a818a",
+    "type": "split",
+    "children": [
+      {
+        "id": "ff667194c3479ee9",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "295d39d9377c76e9",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2838d7b9693957fd",
+    "type": "split",
+    "children": [
+      {
+        "id": "4569bde702c1cff5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e5acb57c49662e66",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "7f425e3cdaa6a70e",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "vault",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "5b5832e9e119a589",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "298feeb6362049a6",
+    "type": "split",
+    "children": [
+      {
+        "id": "9edf47b850dc9fce",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4d47dbbb58f53e0f",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "2026-05-10.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for 2026-05-10"
+            }
+          },
+          {
+            "id": "24f09599d2c7bc72",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "2026-05-10.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from 2026-05-10"
+            }
+          },
+          {
+            "id": "81afd9fde6be48ca",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "8e2f7650aabbfb1f",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "c8abe570fee57af1",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "2026-05-10.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of 2026-05-10"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "295d39d9377c76e9",
+  "lastOpenFiles": [
+    "reference/Conventions & Gotchas.md",
+    "reference/Conventions & Gotchas.md.tmp.1137188.6f5afcdb0f3c",
+    "reference/Environment Variables.md",
+    "reference/Environment Variables.md.tmp.1137188.0745f72c300a",
+    "reference/Configuration.md",
+    "reference/Configuration.md.tmp.1137188.92070e9de809",
+    "reference/Testing.md",
+    "reference/Testing.md.tmp.1137188.3e9f3a19b3ed",
+    "reference/Project Setup.md",
+    "reference/Project Setup.md.tmp.1137188.ba8fa7a1fe49",
+    "data/Mock Data Layer.md",
+    "data/Mock Data Layer.md.tmp.1137188.03384c523917",
+    "ui/Layouts & Navigation.md",
+    "ui/Layouts & Navigation.md.tmp.1137188.f68a33f8886c",
+    "ui/Styling & Theme.md",
+    "ui/Styling & Theme.md.tmp.1137188.71deace3e9ce",
+    "ui/Component Library.md",
+    "ui/Component Library.md.tmp.1137188.5f803e292b1b",
+    "features/Settings.md",
+    "features/Settings.md.tmp.1137188.4f8aa053604e",
+    "features/Analytics.md",
+    "features/Messages.md",
+    "features/Classes.md",
+    "features/Users.md",
+    "features/Dashboard (Home).md",
+    "auth/Firebase Setup.md",
+    "auth/Auth API Routes.md",
+    "auth/Route Protection.md",
+    "auth/Profile & Onboarding.md",
+    "auth/Login & Logout.md",
+    "auth/Invite & Join Flow.md",
+    "auth/Authentication Overview.md",
+    "overview/Domain Model.md",
+    "overview/Tech Stack.md",
+    "overview/Architecture.md",
+    "overview/Project Overview.md"
+  ]
+}
