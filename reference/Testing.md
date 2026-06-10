@@ -2,11 +2,11 @@
 title: Testing
 tags: [domain/reference, status/implemented]
 status: implemented
-sources: ["jest.config.ts", "jest.setup.ts", "__tests__/middleware.test.ts", "app/api/auth/", "playwright.config.ts"]
-updated: 2026-06-01
+sources: ["jest.config.ts", "jest.setup.ts", "__tests__/middleware.test.ts", "app/api/auth/", "app/api/plans/", "app/api/members/", "app/api/member/", "lib/credits/", "lib/member/", "app/(member)/", "playwright.config.ts"]
+updated: 2026-06-11
 ---
 
-> **Status:** ✅ 49 Jest tests passing; Playwright configured (minimal tests)
+> **Status:** ✅ 115 Jest tests passing across 24 suites; Playwright configured (e2e excluded from Jest)
 
 # Testing
 
@@ -27,6 +27,7 @@ updated: 2026-06-01
 - Default `testEnvironment: 'jsdom'` (for component tests)
 - `setupFilesAfterEnv: ['./jest.setup.ts']`
 - `moduleNameMapper`: `^@/(.*)$ → <rootDir>/$1` mirrors the tsconfig `@/*` path alias
+- **Ignores `__tests__/e2e`** (Playwright specs) so they don't run under Jest
 
 **`jest.setup.ts`:** Imports `@testing-library/jest-dom` matchers. Polyfills `global.ResizeObserver` (no-op) needed by Recharts and calendar components in jsdom.
 
@@ -59,7 +60,9 @@ Tests are **colocated** with their source files as `*.test.ts(x)`. Two exception
 | `app/api/auth/setup-profile/route.test.ts` | Setup-profile API route |
 | `app/api/auth/complete-profile/route.test.ts` | Complete-profile API route |
 
-**Total: 11 Jest test suites, 49 tests.**
+The `feature/member-role-and-plans` phase added suites for the credits library, the plans/members/member API routes, the member pages, and the reservations context (`lib/credits/validate.test.ts`, `app/api/plans/*`, `app/api/members/*`, `app/api/member/*`, `app/(member)/member/classes/page.test.tsx`, `app/(member)/member/profile/page.test.tsx`, `lib/member/reservations-context.test.tsx`, etc.). The member profile test pins a **stable `useAdmin` mock** — an unstable one made `useEffect([admin])` re-render forever (the real `AdminProvider` is stable).
+
+**Total: 24 Jest test suites, 115 tests** (Playwright e2e excluded).
 
 ## REQ-NN Labels
 

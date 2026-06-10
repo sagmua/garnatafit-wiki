@@ -2,8 +2,8 @@
 title: Firebase Setup
 tags: [domain/auth, status/implemented]
 status: implemented
-sources: ["lib/firebase/admin.ts", "lib/firebase/client.ts", "next.config.ts"]
-updated: 2026-06-01
+sources: ["lib/firebase/admin.ts", "lib/firebase/client.ts", "next.config.ts", "docs/design/member-role-and-plans.md"]
+updated: 2026-06-11
 ---
 
 > **Status:** ✅ Implemented
@@ -64,21 +64,31 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
 ## Firebase Project Roles
 
-The same Firebase project serves both apps. Firebase Auth is the identity provider for admins. Firestore is used for:
-- `admins/{uid}` — admin profile docs
-- `pendingInvites/{email}` — invite authorization tokens
+The same Firebase project serves both audiences (admins and members) and will serve the future mobile app. Firebase Auth is the identity provider, with a **`role` custom claim** (`admin | member`) minted server-side — see [[auth/Roles & Claims]].
 
-**Security rules:** Deny all client-side reads/writes. All mutations go through the Admin SDK (server-side).
+**Security rules status:** Real `firestore.rules` are **NOT authored yet** — deferred to the mobile-integration phase. Today, the browser never touches Firestore directly; every read/write goes through `/api/*` + the Admin SDK, and admin-only routes are guarded by `requireAdmin` (`lib/auth/session.ts`). The **intended** rules model is documented in `docs/design/member-role-and-plans.md`:
+
+```
+members/{uid}              — member reads/writes own doc (limited fields); admins full
+members/{uid}/creditBatches/* — member read-only own; writes server-only
+creditBundleTemplates/*    — admin write, authenticated read
+pendingInvites/*           — server-only
+```
 
 ## Firestore Collections
 
 | Collection | Key | Purpose | Written by |
 |------------|-----|---------|-----------|
-| `admins` | `{uid}` | Admin profile | Admin SDK (setup-profile, login, complete-profile routes) |
-| `pendingInvites` | `{email}` | Invite authorization tokens | Admin SDK (invite route) |
+| `admins` | `{uid}` | Admin profile | Admin SDK (setup-profile, login, complete-profile) |
+| `members` | `{uid}` | Member profile + `creditsAvailable` | Admin SDK (setup-profile, login; member profile route) |
+| `members/{uid}/creditBatches` | `{id}` | Granted credit batches | Admin SDK (grant route) |
+| `creditBundleTemplates` | `{id}` | Gym-wide plan catalog | Admin SDK (plans routes) |
+| `pendingInvites` | `{email}` | Invite authorization tokens (+`role`) | Admin SDK (invite route) |
 
 ## Related pages
 
+- [[auth/Roles & Claims]] — custom claims and the shared session guard
 - [[auth/Auth API Routes]] — which API routes use which Firebase methods
+- [[features/Plans & Credits]] — the credit collections in context
 - [[reference/Environment Variables]] — full env var list with purposes
 - [[overview/Domain Model]] — Firestore collections in context

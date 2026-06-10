@@ -18,23 +18,26 @@ Complete catalog of all pages, organized by category. One-line summary per page.
 | Page | Summary |
 |------|---------|
 | [[auth/Authentication Overview]] | Session-cookie model, Firebase, the two-cookie gate, maturity summary |
-| [[auth/Invite & Join Flow]] | 4-phase admin onboarding: invite → password → profile setup → onboarding |
+| [[auth/Roles & Claims]] | `role` custom claim (admin/member), profile collections, `lib/auth/session.ts` guard, legacy back-compat |
+| [[auth/Invite & Join Flow]] | 4-phase onboarding (admin or member): invite+role → password → claim mint → onboarding |
 | [[auth/Login & Logout]] | Login API, session cookie creation, logout cleanup |
 | [[auth/Profile & Onboarding]] | /welcome page, complete-profile API, avatar fallback chain, AdminContext |
 | [[auth/Route Protection]] | proxy.ts logic: public vs gated routes, profile-complete gate, cookie verification |
 | [[auth/Auth API Routes]] | Every /api/auth/* endpoint: inputs, outputs, status codes, error cases |
 | [[auth/Firebase Setup]] | Admin SDK vs client SDK initialization, env vars, server-side-writes posture |
 
-## Features 🟡
+## Features
 
 | Page | Summary |
 |------|---------|
-| [[features/Dashboard (Home)]] | Home dashboard: 3 StatCards, RevenueChart (Weekly Attendance), UpcomingClasses |
-| [[features/Users]] | User management page: member table, AddUserModal, invite flow trigger |
-| [[features/Classes]] | Classes page: ClassGrid + ClassCalendar (Strip/Month views) |
-| [[features/Messages]] | Two-panel chat UI: direct threads, broadcast threads, in-memory state |
-| [[features/Analytics]] | Analytics page: 4 KPI cards, 4 Recharts visualizations, period toggle |
-| [[features/Settings]] | Settings tabs: Gym Info, Profile, Notifications, Appearance |
+| [[features/Plans & Credits]] ✅ | Bundle templates (gym catalog) + member credit grants; Admin SDK; no deduction engine yet |
+| [[features/Member Area]] 🟡 | `/member/*` route group: real profile/credits; mock classes/reservations/chat |
+| [[features/Dashboard (Home)]] 🟡 | Home dashboard: 3 StatCards, RevenueChart (Weekly Attendance), UpcomingClasses |
+| [[features/Users]] ✅ | Member management: real member list, member/admin invite tabs, grant-credits dialog |
+| [[features/Classes]] 🟡 | Classes page: ClassGrid + ClassCalendar (Strip/Month views) |
+| [[features/Messages]] 🟡 | Two-panel chat UI: direct threads, broadcast threads, in-memory state |
+| [[features/Analytics]] 🟡 | Analytics page: 4 KPI cards, 4 Recharts visualizations, period toggle |
+| [[features/Settings]] 🟡 | Settings tabs: Gym Info, Profile, Notifications, Appearance |
 
 ## UI
 

@@ -3,7 +3,7 @@ title: Login & Logout
 tags: [domain/auth, status/implemented]
 status: implemented
 sources: ["app/(auth)/login/page.tsx", "app/api/auth/login/route.ts", "app/api/auth/logout/route.ts", "components/header/Header.tsx"]
-updated: 2026-06-01
+updated: 2026-06-11
 ---
 
 > **Status:** ✅ Implemented & tested
@@ -14,18 +14,20 @@ updated: 2026-06-01
 
 **Page:** `/login` — `app/(auth)/login/page.tsx`
 
-1. Admin enters email + password.
+The login page is shared by admins and members; the `role` claim (not the page) decides the post-login destination — `proxy.ts` lands admins on `/` and members on `/member`. See [[auth/Roles & Claims]] and [[auth/Route Protection]].
+
+1. User enters email + password.
 2. Client calls `signInWithEmailAndPassword(clientAuth, email, password)` (Firebase client SDK).
 3. On success: `user.getIdToken()` to get an ID token.
 4. `POST /api/auth/login { idToken }`:
-   - `adminAuth.verifyIdToken(idToken)` — validates the token.
+   - `adminAuth.verifyIdToken(idToken)` — validates the token and reads the `role` claim (default `admin`).
    - `adminAuth.createSessionCookie(idToken, { expiresIn: 5 days })` — creates a server-managed session cookie.
-   - `Firestore admins/{uid}.get()` — check if profile exists and if it's complete. If the doc is missing AND no `pendingInvites` doc exists, returns 401 (uninvited user). If missing but invite exists, creates the doc defensively.
+   - Profile lookup in `members/{uid}` or `admins/{uid}` by claim. If the doc is missing AND no `pendingInvites` doc exists, returns 401 (uninvited user). If missing but invite exists, re-sources the role, mints the claim, and creates the doc defensively.
    - Returns `{ status: 'ok', profileComplete: boolean }`.
    - Sets `session` cookie (HttpOnly, 5-day TTL).
    - If `profileComplete === true`: also sets `profile_complete=1` cookie.
 5. Client reads `data.profileComplete`:
-   - `true` → redirect to `/`
+   - `true` → redirect to home (the proxy then routes to `/` or `/member` by role)
    - `false` → redirect to `/welcome`
 
 **Error handling:** Firebase error codes map to a generic "Invalid email or password" message (no enumeration). Loading state disables the submit button.

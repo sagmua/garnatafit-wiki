@@ -2,8 +2,8 @@
 title: Mock Data Layer
 tags: [domain/data, status/mock]
 status: mock
-sources: ["lib/data/mock_data.ts", "lib/data/mock_settings.ts", "lib/data/mock_messages.ts", "lib/data/mock_analytics.ts"]
-updated: 2026-06-01
+sources: ["lib/data/mock_data.ts", "lib/data/mock_settings.ts", "lib/data/mock_messages.ts", "lib/data/mock_analytics.ts", "lib/member/reservations-context.tsx"]
+updated: 2026-06-11
 ---
 
 > **Status:** 🟡 All mock — Firestore migration planned for all non-auth entities
@@ -130,6 +130,10 @@ export const analyticsData: Record<TimePeriod, AnalyticsSnapshot>
 ```
 
 All 4 period snapshots are pre-populated with realistic mock values.
+
+## In-Memory Member Reservations (not under lib/data)
+
+`lib/member/reservations-context.tsx` (`ReservationsProvider` / `useReservations`) holds the member area's reserved class IDs in client `useState` — a mock backing Join / My Reservations / Cancel. **Not persisted** (resets on reload), and there is **no credit deduction** on join this phase. See [[features/Member Area]] and [[features/Plans & Credits]].
 
 ## Migration Strategy (planned)
 

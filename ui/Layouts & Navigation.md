@@ -2,8 +2,8 @@
 title: Layouts & Navigation
 tags: [domain/ui, status/implemented]
 status: implemented
-sources: ["app/layout.tsx", "app/(dashboard)/layout.tsx", "components/DashboardLayout.tsx", "components/Sidebar.tsx", "components/header/Header.tsx"]
-updated: 2026-06-01
+sources: ["app/layout.tsx", "app/(dashboard)/layout.tsx", "app/(member)/layout.tsx", "components/DashboardLayout.tsx", "components/MemberLayout.tsx", "components/Sidebar.tsx", "components/header/Header.tsx"]
+updated: 2026-06-11
 ---
 
 > **Status:** ✅ Implemented
@@ -32,6 +32,16 @@ The real implementation. Provides:
 
 Body scroll is locked via `overflow-hidden` class when the mobile drawer is open.
 
+## Member Layout
+
+**File:** `components/MemberLayout.tsx` (wrapped by `app/(member)/layout.tsx`)  
+Mirrors `DashboardLayout` for the `/member/*` area, but:
+- Wraps content in `AdminProvider` **and** `ReservationsProvider` (in-memory member reservations).
+- Reuses the shared `Sidebar` via its new **`items` prop**, passing the member nav (Home, Classes, My Reservations, Messages, Profile).
+- Same collapse/mobile-drawer behavior and `Header` as the dashboard.
+
+Access is restricted to `role: 'member'` accounts by `proxy.ts`. See [[features/Member Area]] and [[auth/Route Protection]].
+
 ## Auth Layout
 
 `app/(auth)/` has **no layout file**. Auth pages inherit only the root layout — no sidebar, no header. This gives auth pages their full-screen centered design.
@@ -39,19 +49,30 @@ Body scroll is locked via `overflow-hidden` class when the mobile drawer is open
 ## Sidebar
 
 **File:** `components/Sidebar.tsx`  
-Client component. Two simultaneously rendered variants:
+Client component, now **reusable** across the admin and member areas. It accepts an `items?: NavItem[]` prop (defaulting to the admin nav, `adminNavItems`); `MemberLayout` passes `memberNavItems` instead. Two simultaneously rendered variants:
 - **Mobile drawer** — fixed `inset-0 z-50`, dark backdrop. Slides in; backdrop click or route change closes it.
 - **Desktop sidebar** — fixed left, `w-20` (collapsed) or `w-64` (expanded), hidden on mobile.
 
-### Navigation Items
+### Admin Navigation Items (default)
 
 ```
 Dashboard   /         LayoutDashboard icon
 Users       /users    Users icon
 Classes     /classes  Calendar icon
+Plans       /plans    Ticket icon          ← new (Plans/credits)
 Messages    /messages MessageSquare icon
 Analytics   /analytics BarChart3 icon
 Settings    /settings Settings icon
+```
+
+### Member Navigation Items (`MemberLayout` `items` prop)
+
+```
+Home            /member              LayoutDashboard icon
+Classes         /member/classes      Calendar icon
+My Reservations /member/reservations CalendarCheck icon
+Messages        /member/messages     MessageSquare icon
+Profile         /member/profile      User icon
 ```
 
 Active route detected via `usePathname()`. Active style: `text-gym-green bg-gym-green/5 shadow-[0_0_20px_rgba(204,255,0,0.1)]`. Inactive: `text-gray-400 hover:text-white hover:bg-white/5`.
@@ -90,5 +111,7 @@ admin?.photoURL ?? admin?.fallbackAvatar ?? DEFAULT_AVATAR
 ## Related pages
 
 - [[ui/Component Library]] — DashboardLayout, Sidebar, Header, DropdownMenu detail
+- [[features/Member Area]] — MemberLayout and the member nav
+- [[auth/Roles & Claims]] — how members vs admins land in their respective layouts
 - [[auth/Authentication Overview]] — AdminProvider provides data to Header
 - [[overview/Architecture]] — route group structure

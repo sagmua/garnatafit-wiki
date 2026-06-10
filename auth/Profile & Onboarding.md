@@ -2,8 +2,8 @@
 title: Profile & Onboarding
 tags: [domain/auth, status/implemented]
 status: implemented
-sources: ["app/(auth)/welcome/page.tsx", "app/api/auth/complete-profile/route.ts", "app/api/auth/me/route.ts", "lib/admin-context.tsx", "lib/compress-image.ts", "app/(dashboard)/settings/page.tsx", "components/header/Header.tsx"]
-updated: 2026-06-01
+sources: ["app/(auth)/welcome/page.tsx", "app/api/auth/complete-profile/route.ts", "app/api/auth/me/route.ts", "lib/admin-context.tsx", "lib/compress-image.ts", "app/(dashboard)/settings/page.tsx", "app/(member)/member/profile/page.tsx", "app/api/member/profile/route.ts", "components/header/Header.tsx"]
+updated: 2026-06-11
 ---
 
 > **Status:** ✅ Implemented & tested
@@ -56,23 +56,24 @@ On submit, `POST /api/auth/complete-profile`. On success, redirects to `/`.
 
 **File:** `app/api/auth/me/route.ts`
 
-Reads the admin's Firestore doc and returns the `AdminProfile` shape. Used by `AdminProvider` on every mount.
+Reads the signed-in user's Firestore doc (from `members/{uid}` or `admins/{uid}` per the `role` claim) and returns the `AdminProfile` shape. Used by `AdminProvider` on every mount, in **both** the admin and member areas.
 
 ```ts
 Response: {
-  uid, name, surname, email, photoURL, fallbackAvatar, profileComplete
+  uid, role, name, surname, email, photoURL,
+  fallbackAvatar, profileComplete, phone, address
 }
 ```
 
-Returns 404 if the Firestore doc doesn't exist, 401 if the session is missing/invalid.
+`role`, `phone`, and `address` were added this phase (see [[auth/Roles & Claims]]). Returns 404 if the Firestore doc doesn't exist, 401 if the session is missing/invalid.
 
 ## AdminContext
 
 **File:** `lib/admin-context.tsx`
 
-React context that makes admin profile data available throughout the dashboard without prop drilling.
+React context that makes profile data available throughout the dashboard **and the member area** without prop drilling (both `DashboardLayout` and `MemberLayout` wrap their content in `AdminProvider`). The `AdminProfile` type now includes optional `role`, `phone`, and `address` (`MemberAddress`: `line1`/`city`/`postalCode`/`country`).
 
-- `AdminProvider` — provided at the `DashboardLayout` level. Fetches `/api/auth/me` on mount using `useReducer` (avoids `react-hooks/set-state-in-effect` lint error). A shared `cancelledRef` guards against state updates after unmount (in both the `useEffect` initial fetch and the `refresh()` function).
+- `AdminProvider` — Fetches `/api/auth/me` on mount using `useReducer` (avoids `react-hooks/set-state-in-effect` lint error). A shared `cancelledRef` guards against state updates after unmount (in both the `useEffect` initial fetch and the `refresh()` function).
 - `useAdmin()` hook — returns `{ admin: AdminProfile | null, loading: boolean, refresh: () => void }`.
 - `refresh()` — re-fetches `/api/auth/me` and dispatches `loaded` action. Called after the Settings profile save to update the header immediately.
 
@@ -101,8 +102,19 @@ On the `/welcome` page before any name is typed: a `UserRound` icon is shown ins
 - Email field is read-only (disabled input). "Contact support to change your login email."
 - Password section: form fields exist, Change button shows the form — but the "Update password" button has no `onClick` handler (non-functional; tracked in [[reference/Conventions & Gotchas]]).
 
+## Member Self-Service Profile
+
+Members edit their own profile at `/member/profile` (`app/(member)/member/profile/page.tsx`), separate from the admin Settings tab.
+
+- **Personal details** → `PATCH /api/member/profile` (`app/api/member/profile/route.ts`): member-only (`getSessionUser` + `role === 'member'`, else 403). Updates `name`, `surname`, `phone`, structured `address`, merged into `members/{uid}`. **Email and role are not editable here**; name/surname required (400 otherwise). Calls `refresh()` after save.
+- **Password** → in-app via Firebase client SDK: `reauthenticateWithCredential` + `updatePassword`, plus a "send reset email" button (`sendPasswordResetEmail`). Unlike the admin Settings password section, this one is **functional**.
+
+Full member-area detail in [[features/Member Area]].
+
 ## Related pages
 
+- [[auth/Roles & Claims]] — role claim and `/api/auth/me` extensions
 - [[auth/Invite & Join Flow]] — where /welcome is reached in the flow
 - [[auth/Authentication Overview]] — the two-cookie model and profile_complete gate
+- [[features/Member Area]] — member self-service profile & password
 - [[ui/Layouts & Navigation]] — Header avatar display
