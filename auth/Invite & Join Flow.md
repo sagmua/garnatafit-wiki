@@ -2,7 +2,7 @@
 title: Invite & Join Flow
 tags: [domain/auth, status/implemented]
 status: implemented
-sources: ["app/api/auth/invite/route.ts", "app/(auth)/invite/complete/page.tsx", "app/api/auth/setup-profile/route.ts", "app/api/auth/login/route.ts", "app/(auth)/welcome/page.tsx", "app/api/auth/complete-profile/route.ts", "docs/design/auth-invite-flow.md"]
+sources: ["app/api/auth/invite/route.ts", "app/(auth)/invite/complete/page.tsx", "app/api/auth/setup-profile/route.ts", "app/api/auth/login/route.ts", "app/(auth)/welcome/page.tsx", "app/api/auth/complete-profile/route.ts", "lib/email/templates/invite.ts", "docs/design/auth-invite-flow.md"]
 updated: 2026-06-11
 ---
 
@@ -25,7 +25,7 @@ A full **Mermaid sequence diagram** lives in the webapp repo at `docs/design/aut
 3. Resolve role: `role ?? 'admin'`; reject if not `'admin' | 'member'` (**400**).
 4. `adminAuth.getUserByEmail(email)` — if user exists, return **409** (duplicate check).
 5. `adminAuth.generateSignInWithEmailLink(email, settings)` — generates a Firebase OOB sign-in link. URL embeds the invitee's email as a query param: `/invite/complete?email=<encoded>`.
-6. `sendInviteEmail(email, link)` — sends a branded HTML email via **Resend** (see `lib/email/resend.ts` and `lib/email/templates/invite.ts`).
+6. `sendInviteEmail(email, link)` — sends a branded HTML email via **Resend** (see `lib/email/resend.ts` and `lib/email/templates/invite.ts`). The email subject and body copy are generic ("You've been invited to join GarnataFit"), making the same template suitable for both admin and member invites.
 7. `Firestore pendingInvites/{email}.set({ invitedBy: inviterUid, role, createdAt })` — authorization token (now carrying the role) for phase 3.
 
 **Error cases:** 401 (no/invalid session), 400 (bad email or invalid role), 409 (already registered), 500 (Firebase/Resend/Firestore failure).
@@ -45,7 +45,7 @@ This is a public page (no session required — listed in the proxy's public-page
    - `user.getIdToken()` — gets an ID token for `setup-profile`.
 4. After `setup-profile` mints the claim, the page calls **`getIdToken(true)`** (force refresh) so the next token carries the new `role` claim, then calls `login`. Without this refresh the session cookie would lack the role. See [[auth/Roles & Claims]].
 
-**Error case:** Invalid/expired link shows a static error message. Link is a Firebase OOB code with a limited TTL.
+**Error case:** Invalid/expired link shows a static error message. Link is a Firebase OOB code; no custom TTL is set in `actionCodeSettings` (`app/api/auth/invite/route.ts` lines 51–54), so Firebase's platform default of **24 hours** applies.
 
 ## Phase 3 — Setup Profile & Create Session
 
@@ -80,12 +80,13 @@ The proxy lets through any request to `/welcome` with a valid session, regardles
 1. Admin fills in `name`, `surname` (required), and optionally uploads a profile photo.
 2. Photo upload: client-side compression via `compressImage()` (`lib/compress-image.ts`) → resizes to 200×200 JPEG at 0.7 quality.
 3. `POST /api/auth/complete-profile { name, surname, avatar? }`:
-   - Verify session cookie.
+   - Verify session cookie → `uid`, `role`.
    - If `avatar` is a `data:image/jpeg;base64,...` string, validate it's under ~100 KB.
    - If no avatar, generate a UI Avatars URL (`https://ui-avatars.com/api/?name=...`).
-   - `Firestore admins/{uid}.set({ name, surname, photoURL, fallbackAvatar: '/default-avatar.svg', profileComplete: true }, { merge: true })`.
+   - `Firestore <collection>/{uid}.set({ name, surname, photoURL, fallbackAvatar: '/default-avatar.svg', profileComplete: true }, { merge: true })` — collection is `members` for role `member`, `admins` otherwise.
    - Sets `profile_complete=1` cookie (1-year TTL).
-4. Client redirects to `/` (dashboard). The proxy now allows through — both cookies present.
+   - Returns `{ status: 'ok', role }`.
+4. Client reads `data.role` from the response and redirects to `/member` for members or `/` (dashboard) for admins. The proxy now allows through — both cookies present.
 
 ## Avatar Fallback Chain
 

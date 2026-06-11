@@ -3,7 +3,7 @@ title: Conventions & Gotchas
 tags: [domain/reference, status/implemented]
 status: implemented
 sources: ["components/RevenueChart.tsx", "components/DropdownMenu.tsx", "components/classes/ClassGrid.tsx", "components/calendar/StripCalendar.tsx", "components/styles/FullCalendar.css", "app/(dashboard)/settings/page.tsx", "package.json"]
-updated: 2026-06-01
+updated: 2026-06-11
 ---
 
 > **Status:** ✅ Documented — known quirks and intentional conventions
@@ -31,11 +31,6 @@ The week strip shows "December 2025" as the month header, with hardcoded dates 2
 ---
 
 ## Non-Functional UI Elements
-
-### "Update password" button does nothing
-**File:** `app/(dashboard)/settings/page.tsx` (ProfileTab, password section)  
-The "Update password" `<button>` in the Settings Profile tab has no `onClick` handler. Clicking it does nothing. The form is visible and inputs accept text, but no password change is triggered.  
-*Issue: tracked in [[features/Settings]]; [[reference/Project Setup#First Admin]] notes this is pending implementation.*
 
 ### "Save changes" buttons in Gym Info, Notifications, Appearance tabs
 **File:** `app/(dashboard)/settings/page.tsx`  

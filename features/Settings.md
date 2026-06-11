@@ -3,7 +3,7 @@ title: Settings
 tags: [domain/features, status/mock]
 status: mock
 sources: ["app/(dashboard)/settings/page.tsx", "lib/data/mock_settings.ts"]
-updated: 2026-06-01
+updated: 2026-06-11
 ---
 
 > **Status:** 🟡 Profile tab is real; other tabs are mock/non-functional
@@ -35,7 +35,7 @@ Key behaviors:
 - `res.ok` check before showing "Saved!" — shows error message on failure.
 - Calls `refresh()` after save to update the header avatar/name.
 - Email field is disabled (read-only).
-- Password form shows/hides via `showPasswordForm` state. **"Update password" button is non-functional** (no `onClick` handler). See [[reference/Conventions & Gotchas]].
+- Password section: a single "Send reset link" button calls `sendPasswordResetEmail` (Firebase client SDK) for the signed-in admin's email. Inline ok/error feedback. No form fields, no re-auth flow.
 
 ### Notifications Tab — 🟡 Mock / non-functional
 

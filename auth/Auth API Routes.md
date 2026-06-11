@@ -2,7 +2,7 @@
 title: Auth API Routes
 tags: [domain/auth, status/implemented]
 status: implemented
-sources: ["app/api/auth/login/route.ts", "app/api/auth/logout/route.ts", "app/api/auth/invite/route.ts", "app/api/auth/setup-profile/route.ts", "app/api/auth/complete-profile/route.ts", "app/api/auth/me/route.ts", "lib/auth/session.ts"]
+sources: ["app/api/auth/login/route.ts", "app/api/auth/logout/route.ts", "app/api/auth/invite/route.ts", "app/api/auth/setup-profile/route.ts", "app/api/auth/complete-profile/route.ts", "app/api/auth/me/route.ts", "lib/auth/session.ts", "lib/email/templates/invite.ts"]
 updated: 2026-06-11
 ---
 
@@ -59,7 +59,7 @@ Clears both `session` and `profile_complete` cookies (`maxAge: 0`).
 3. Resolve role: `rawRole === undefined ? 'admin' : rawRole`; reject anything not in `['admin','member']` with 400
 4. `adminAuth.getUserByEmail(email)` — 409 if user exists
 5. `adminAuth.generateSignInWithEmailLink(email, settings)`
-6. `sendInviteEmail(email, link)` via Resend
+6. `sendInviteEmail(email, link)` via Resend — email copy is generic ("You've been invited to join GarnataFit"), suitable for both admin and member invites (`lib/email/templates/invite.ts`)
 7. `Firestore pendingInvites/{email}.set({ invitedBy: inviterUid, role, createdAt })`
 
 | Status | Condition |
@@ -102,16 +102,17 @@ Creates the initial (incomplete) profile doc. Idempotent — returns 200 if doc 
 **Auth:** Requires valid `session` cookie  
 **Body:** `{ name: string, surname: string, avatar?: string }`
 
-1. Verify session cookie → `uid`
+1. Verify session cookie → `uid`, `role` (decoded from the session cookie claim)
 2. Validate name + surname (required, trimmed)
 3. Validate avatar size if provided (max ~100 KB)
 4. Generate UI Avatars URL if no avatar
-5. `Firestore admins/{uid}.set({ name, surname, photoURL, fallbackAvatar, profileComplete: true }, { merge: true })`
+5. `Firestore <collection>/{uid}.set({ name, surname, photoURL, fallbackAvatar, profileComplete: true }, { merge: true })` — collection is `members` for role `member`, `admins` otherwise
 6. Sets `profile_complete=1` cookie (1-year TTL)
+7. Returns `{ status: 'ok', role }`
 
 | Status | Condition |
 |--------|-----------|
-| 200 | Profile saved, `profile_complete` cookie set |
+| 200 | Profile saved, `profile_complete` cookie set; body contains `{ status: 'ok', role }` |
 | 400 | Missing name/surname, or avatar too large |
 | 401 | Missing/invalid session |
 

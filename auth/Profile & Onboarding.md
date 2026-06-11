@@ -31,7 +31,7 @@ Required immediately after invite acceptance, before any dashboard access. The p
 - `compressImage(file, maxSize = 200, quality = 0.7): Promise<string>`
 - Reads via `FileReader`, scales to fit 200×200 (never upscales), draws to `<canvas>`, returns `data:image/jpeg;base64,...`
 
-On submit, `POST /api/auth/complete-profile`. On success, redirects to `/`.
+On submit, `POST /api/auth/complete-profile`. On success, reads `data.role` from the response and redirects to `/member` for members or `/` for admins.
 
 ## complete-profile API — `POST /api/auth/complete-profile`
 
@@ -48,9 +48,9 @@ On submit, `POST /api/auth/complete-profile`. On success, redirects to `/`.
 2. Validate name + surname.
 3. If `avatar` is a base64 data URI: validate size (`base64.length > MAX_AVATAR_BYTES * 1.37` check).
 4. If no avatar: generate `https://ui-avatars.com/api/?name=<encoded>&background=random&size=200`.
-5. `Firestore admins/{uid}.set({ name, surname, photoURL, fallbackAvatar: '/default-avatar.svg', profileComplete: true }, { merge: true })`.
+5. Resolves the target collection from the role decoded from the session cookie: `members` for `role === 'member'`, `admins` otherwise. `Firestore <collection>/{uid}.set({ name, surname, photoURL, fallbackAvatar: '/default-avatar.svg', profileComplete: true }, { merge: true })`.
 6. Sets `profile_complete=1` cookie (1-year TTL).
-7. Returns 200 `{ status: 'ok' }`.
+7. Returns 200 `{ status: 'ok', role }`.
 
 ## me API — `GET /api/auth/me`
 
@@ -100,14 +100,14 @@ On the `/welcome` page before any name is typed: a `UserRound` icon is shown ins
 - Checks `res.ok` before calling `setSaved(true)` — shows error message on failure.
 - Calls `refresh()` after a successful save so the Header avatar and name update immediately.
 - Email field is read-only (disabled input). "Contact support to change your login email."
-- Password section: form fields exist, Change button shows the form — but the "Update password" button has no `onClick` handler (non-functional; tracked in [[reference/Conventions & Gotchas]]).
+- Password section: a single "Send reset link" button calls `sendPasswordResetEmail` (Firebase client SDK) for the signed-in admin's email. Displays an inline ok/error message. No in-app re-auth or `updatePassword` flow.
 
 ## Member Self-Service Profile
 
 Members edit their own profile at `/member/profile` (`app/(member)/member/profile/page.tsx`), separate from the admin Settings tab.
 
 - **Personal details** → `PATCH /api/member/profile` (`app/api/member/profile/route.ts`): member-only (`getSessionUser` + `role === 'member'`, else 403). Updates `name`, `surname`, `phone`, structured `address`, merged into `members/{uid}`. **Email and role are not editable here**; name/surname required (400 otherwise). Calls `refresh()` after save.
-- **Password** → in-app via Firebase client SDK: `reauthenticateWithCredential` + `updatePassword`, plus a "send reset email" button (`sendPasswordResetEmail`). Unlike the admin Settings password section, this one is **functional**.
+- **Password** → single "Send reset link" button (`sendPasswordResetEmail` via Firebase client SDK). Sends a reset email to the member's own address. No in-app re-auth or `updatePassword` flow.
 
 Full member-area detail in [[features/Member Area]].
 

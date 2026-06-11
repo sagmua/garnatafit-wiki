@@ -2,7 +2,7 @@
 title: Member Area
 tags: [domain/features, status/mock]
 status: mock
-sources: ["app/(member)/layout.tsx", "app/(member)/member/page.tsx", "app/(member)/member/classes/page.tsx", "app/(member)/member/reservations/page.tsx", "app/(member)/member/messages/page.tsx", "app/(member)/member/profile/page.tsx", "components/MemberLayout.tsx", "lib/member/reservations-context.tsx", "app/api/member/profile/route.ts", "app/api/member/credits/route.ts", "docs/design/member-role-and-plans.md"]
+sources: ["app/(member)/layout.tsx", "app/(member)/member/page.tsx", "app/(member)/member/classes/page.tsx", "app/(member)/member/reservations/page.tsx", "app/(member)/member/messages/page.tsx", "app/(member)/member/profile/page.tsx", "app/(member)/member/profile/page.test.tsx", "components/MemberLayout.tsx", "lib/member/reservations-context.tsx", "app/api/member/profile/route.ts", "app/api/member/credits/route.ts", "docs/design/member-role-and-plans.md"]
 updated: 2026-06-11
 ---
 
@@ -45,7 +45,7 @@ Profile         /member/profile       User
 `app/(member)/member/profile/page.tsx` has two real cards:
 
 - **Personal details** → `PATCH /api/member/profile` (`app/api/member/profile/route.ts`): member-only (`getSessionUser` + `role === 'member'`, else `403`). Edits `name`, `surname`, `phone`, and a structured `address` (`line1`, `city`, `postalCode`, `country`), merged into `members/{uid}`. **Email and role are intentionally not editable here**; name/surname are required (`400` otherwise). Calls `refresh()` on the shared context after save.
-- **Password** → in-app change via Firebase client SDK: `reauthenticateWithCredential` + `updatePassword` (min 8 chars, must match), plus an "Email me a reset link" button (`sendPasswordResetEmail`).
+- **Password** → single "Send reset link" button (`sendPasswordResetEmail` via Firebase client SDK). Sends a reset email to the member's address. No in-app re-auth or `updatePassword` flow exists.
 
 Member onboarding still collects only name/surname/avatar at `/welcome`; phone/address are added later here in the profile screen.
 
@@ -59,7 +59,7 @@ Member onboarding still collects only name/surname/avatar at `/welcome`; phone/a
 |-------|--------|
 | Route group + layout + nav | ✅ Real |
 | Member profile self-edit | ✅ Real (`members/{uid}`) |
-| Password change / reset | ✅ Real (Firebase client SDK) |
+| Password reset (email link) | ✅ Real (`sendPasswordResetEmail`) |
 | Member credits display | ✅ Real (`GET /api/member/credits`) |
 | Classes browse | 🟡 Mock |
 | Reservations (Join/Cancel) | 🟡 In-memory, not persisted |

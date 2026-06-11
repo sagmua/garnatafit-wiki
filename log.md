@@ -11,6 +11,14 @@ Append-only chronological record of all wiki operations (ingests, queries, lint 
 - Auth pages marked `implemented`; all feature pages marked `mock` (backed by `lib/data/mock_*.ts` with inline Firestore migration notes).
 - Sources: all files under `/home/scardenete/Documents/garnatafit-webapp` explored via codebase agents.
 
+## 2026-06-11 — Ingest: feature/member-onboarding-fixes (commit 3fc24c3)
+
+Three behaviour-changing fixes ingested from branch `feature/member-onboarding-fixes`.
+
+- **`auth/Invite & Join Flow.md`** — Phase 1: noted that `lib/email/templates/invite.ts` now uses generic copy ("You've been invited to join GarnataFit"), removing the old admin-specific "dashboard" reference, making the template suitable for both roles. Phase 4: corrected `complete-profile` Firestore write to be role-aware (`members` vs `admins` collection); added `{ status: 'ok', role }` return shape; updated client redirect to `/member` for members and `/` for admins (was always `/`). Added `lib/email/templates/invite.ts` to `sources:`.
+- **`auth/Auth API Routes.md`** — `POST /api/auth/complete-profile`: step 1 now captures `role` from the session cookie; step 5 documents role-aware collection selection; step 7 added (`Returns { status: 'ok', role }`); 200 status row updated to reflect `role` in response body. `POST /api/auth/invite`: `sendInviteEmail` note updated to reference generic email copy. Added `lib/email/templates/invite.ts` to `sources:`.
+- **`auth/Profile & Onboarding.md`** — `/welcome` submit description updated: now redirects to `/member` for members, `/` for admins (reads `data.role`). `complete-profile` API step 5 corrected to role-aware collection; step 7 response updated to `{ status: 'ok', role }`.
+
 ## 2026-06-11 — Ingest: feature/member-role-and-plans
 
 Ingested the dual-audience + roles + Plans feature set (commits 1128eb7, a7498e7, cedfdbd, 49ff07b, 2da0707, 9f52a21). Verified against code; design summary in `docs/design/member-role-and-plans.md`.
@@ -29,3 +37,17 @@ Ingested the dual-audience + roles + Plans feature set (commits 1128eb7, a7498e7
 - **Updated** `data/Mock Data Layer.md` — in-memory reservations context note.
 - **Updated** `reference/Testing.md` — jest ignores `__tests__/e2e`; 115 tests / 24 suites; new suites; stable `useAdmin` mock note.
 - **Updated** `index.md` — added the 3 new pages and refreshed feature statuses.
+
+## 2026-06-11 — Query: invite link TTL
+
+- Checked `app/api/auth/invite/route.ts` — `actionCodeSettings` passes no custom expiration; Firebase platform default of **24 hours** applies.
+- Updated `auth/Invite & Join Flow.md` Phase 2 error-case note to state the concrete 24-hour TTL.
+
+## 2026-06-11 — Ingest: feature/member-onboarding-fixes (commit 49dda2b)
+
+Password-change UX simplified to email-link reset in both member and admin surfaces.
+
+- **`features/Member Area.md`** — Profile screen password description updated: removed `reauthenticateWithCredential` + `updatePassword` two-step flow; now documents single "Send reset link" button (`sendPasswordResetEmail`). Maturity table row updated to "Password reset (email link) — Real (`sendPasswordResetEmail`)". Added `app/(member)/member/profile/page.test.tsx` to `sources:`.
+- **`auth/Profile & Onboarding.md`** — Settings Profile tab password entry: removed "non-functional / no `onClick`" note and reference to [[reference/Conventions & Gotchas]]; now documents the reset-link button and inline feedback. Member self-service password entry: removed `reauthenticateWithCredential` + `updatePassword` description; now matches admin: single `sendPasswordResetEmail` button with no re-auth flow. `updated:` was already `2026-06-11`.
+- **`features/Settings.md`** — Profile tab password bullet: removed `showPasswordForm` state, "Update password is non-functional", and Gotchas cross-ref; replaced with reset-link button description. `updated:` bumped to `2026-06-11`.
+- **`reference/Conventions & Gotchas.md`** — Removed the "Update password button does nothing" entry (the button no longer exists — replaced by the working reset-link button). `updated:` bumped to `2026-06-11`.
