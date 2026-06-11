@@ -2,7 +2,7 @@
 title: Firebase Setup
 tags: [domain/auth, status/implemented]
 status: implemented
-sources: ["lib/firebase/admin.ts", "lib/firebase/client.ts", "next.config.ts", "docs/design/member-role-and-plans.md"]
+sources: ["lib/firebase/admin.ts", "lib/firebase/client.ts", "next.config.ts", "docs/design/member-role-and-plans.md", "lib/email/resend.ts", "firebase.json", "scripts/test-e2e.sh"]
 updated: 2026-06-11
 ---
 
@@ -37,6 +37,8 @@ function getAdminApp() {
 - `FIREBASE_ADMIN_CLIENT_EMAIL`
 - `FIREBASE_ADMIN_PRIVATE_KEY`
 
+**Emulator mode:** When `FIREBASE_AUTH_EMULATOR_HOST` is set, `cert()` is skipped entirely. The app initializes with `initializeApp({ projectId })` — no credentials needed. This allows the e2e test suite to use Firebase emulators without any real service account. `lib/email/resend.ts` also early-returns (skips real email sends) under the same condition.
+
 **next.config.ts** sets `serverExternalPackages: ["firebase-admin"]` so the Admin SDK is treated as an external Node package and is not bundled by webpack.
 
 **Note:** `garnatafit-firebase-adminsdk.json` exists at the repo root and is gitignored. It is not used by the code — the admin SDK reads from env vars, not the JSON file.
@@ -53,6 +55,8 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 ```
 
 **Exports:** `clientAuth` (`getAuth(app)`), `clientDb` (`getFirestore(app)`).
+
+**Emulator mode:** When `NEXT_PUBLIC_USE_EMULATORS === 'true'` (client-side only), `connectAuthEmulator` and `connectFirestoreEmulator` are called after initialization. Guarded by `typeof window !== 'undefined'` and wrapped in try/catch for HMR safety (reconnect calls throw on hot reload).
 
 **Required env vars** (all `NEXT_PUBLIC_` — exposed to the browser):
 - `NEXT_PUBLIC_FIREBASE_API_KEY`
@@ -92,3 +96,4 @@ pendingInvites/*           — server-only
 - [[features/Plans & Credits]] — the credit collections in context
 - [[reference/Environment Variables]] — full env var list with purposes
 - [[overview/Domain Model]] — Firestore collections in context
+- [[reference/Testing]] — e2e emulator setup, global.setup.ts seed logic

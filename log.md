@@ -43,6 +43,17 @@ Ingested the dual-audience + roles + Plans feature set (commits 1128eb7, a7498e7
 - Checked `app/api/auth/invite/route.ts` — `actionCodeSettings` passes no custom expiration; Firebase platform default of **24 hours** applies.
 - Updated `auth/Invite & Join Flow.md` Phase 2 error-case note to state the concrete 24-hour TTL.
 
+## 2026-06-11 — Ingest: feature/e2e-playwright
+
+Added full Playwright e2e test infrastructure (17 tests, 5 spec files) running against Firebase emulators. Branch: `feature/e2e-playwright`.
+
+- **Updated `reference/Testing.md`** — rewrote the Playwright section from "configured but empty" to a full e2e chapter: infrastructure (`playwright.config.ts`, `firebase.json`, `scripts/test-e2e.sh`), global setup seed logic (admin + member fixture users, credit batch, session cookie handshake), all 5 spec files with per-test assertion tables, and the CI workflow details. Updated `sources:` to include all new files. Status badge updated: 17 Playwright tests now passing alongside 115 Jest tests.
+- **Updated `reference/Configuration.md`** — replaced the old stale playwright.config.ts entry (was Chromium/Firefox/WebKit, commented-out webServer); documented actual config (Chromium-only, port 3001, globalSetup). Added `firebase.json` and `scripts/test-e2e.sh` entries. Replaced "no CI pipeline" note with two-workflow description: `claude.yml` (unchanged) and new `e2e.yml` (PR-on-main trigger, Java 21, emulator caching). Added new files to `sources:`. Bumped `updated:` to 2026-06-11.
+- **Updated `reference/Project Setup.md`** — added Firebase CLI / Java 21 / system Chrome to prerequisites. Added `pnpm test:e2e` to the commands table with a brief explanation. Added `scripts/test-e2e.sh` and `firebase.json` to `sources:`. Bumped `updated:` to 2026-06-11.
+- **Updated `auth/Firebase Setup.md`** — documented emulator mode for Admin SDK (skips `cert()`, uses `initializeApp({ projectId })`), emulator mode for Client SDK (`connectAuthEmulator` + `connectFirestoreEmulator` guarded by window + try/catch), and Resend early-return under `FIREBASE_AUTH_EMULATOR_HOST`. Added `lib/email/resend.ts`, `firebase.json`, `scripts/test-e2e.sh` to `sources:`. Added cross-ref to Testing in Related pages. Bumped `updated:` to 2026-06-11.
+- **Updated `reference/Environment Variables.md`** — added "E2e / Emulator" section documenting `FIREBASE_AUTH_EMULATOR_HOST`, `FIRESTORE_EMULATOR_HOST`, `FIREBASE_ADMIN_PROJECT_ID` (demo), and `NEXT_PUBLIC_USE_EMULATORS`, all set by `scripts/test-e2e.sh` at test-time only. Added `scripts/test-e2e.sh` and `playwright.config.ts` to `sources:`. Bumped `updated:` to 2026-06-11.
+- **Updated `index.md`** — refreshed Testing summary line to reflect 115 unit + 17 e2e tests.
+
 ## 2026-06-11 — Ingest: feature/member-onboarding-fixes (commit 49dda2b)
 
 Password-change UX simplified to email-link reset in both member and admin surfaces.

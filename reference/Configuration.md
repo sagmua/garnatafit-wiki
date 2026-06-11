@@ -2,8 +2,8 @@
 title: Configuration
 tags: [domain/reference, status/implemented]
 status: implemented
-sources: ["next.config.ts", "tsconfig.json", "jest.config.ts", "eslint.config.mjs", "postcss.config.mjs", "tailwind.config.ts", "pnpm-workspace.yaml", ".github/workflows/claude.yml", "playwright.config.ts"]
-updated: 2026-06-01
+sources: ["next.config.ts", "tsconfig.json", "jest.config.ts", "eslint.config.mjs", "postcss.config.mjs", "tailwind.config.ts", "pnpm-workspace.yaml", ".github/workflows/claude.yml", ".github/workflows/e2e.yml", "playwright.config.ts", "firebase.json", "scripts/test-e2e.sh"]
+updated: 2026-06-11
 ---
 
 > **Status:** ✅ Documented
@@ -79,16 +79,31 @@ allowBuilds:
 ## playwright.config.ts
 
 - `testDir: './__tests__/e2e'`
-- `fullyParallel: true`
+- `fullyParallel: true`, Chromium-only (`channel: 'chrome'` — system Chrome)
+- `globalSetup: './__tests__/e2e/global.setup.ts'`
+- `baseURL: 'http://localhost:3001'` (port 3001, not 3000, to avoid colliding with a running dev session)
 - `reporter: 'html'`
 - CI: `forbidOnly`, `retries: 2`, `workers: 1`
-- Projects: chromium, firefox, webkit
-- `webServer` block is commented out (requires manual server start)
-- `baseURL: 'http://127.0.0.1:3000'` (commented out)
+- `webServer`: `pnpm dev --port 3001`; `reuseExistingServer: !process.env.CI`
 
-## GitHub Actions — .github/workflows/claude.yml
+## firebase.json
 
-The only CI workflow. Runs the Claude Code bot on:
+Declares the Firebase emulator configuration used by `scripts/test-e2e.sh` and CI:
+- Auth emulator: port 9099
+- Firestore emulator: port 8080
+- Emulator UI disabled
+
+## scripts/test-e2e.sh
+
+Shell wrapper that sets all required emulator env vars before invoking Playwright via `firebase emulators:exec`. Exports: `FIREBASE_AUTH_EMULATOR_HOST`, `FIRESTORE_EMULATOR_HOST`, `FIREBASE_ADMIN_PROJECT_ID=demo-garnatafit`, `NEXT_PUBLIC_USE_EMULATORS=true`, and stub `NEXT_PUBLIC_FIREBASE_*` client vars so Next.js can start without real Firebase credentials.
+
+## GitHub Actions Workflows
+
+Two CI workflow files exist under `.github/workflows/`:
+
+### `claude.yml`
+
+Runs the Claude Code bot on:
 - `issue_comment` (created)
 - `pull_request_review_comment` (created)
 - `issues` (opened, assigned)
@@ -96,7 +111,11 @@ The only CI workflow. Runs the Claude Code bot on:
 
 Triggers only when the event body/title contains `@claude`. Job: `ubuntu-latest`, `anthropics/claude-code-action@v1`, authenticated via `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
-**No build/test/lint CI pipeline exists** — tests are run locally only.
+### `e2e.yml`
+
+Runs e2e tests on every **pull request targeting `main`**. Job: `ubuntu-latest`, 15-minute timeout. Requires Java 21 (Temurin) for Firebase emulator JARs. Caches: pnpm store, Playwright browsers (`~/.cache/ms-playwright`), Firebase emulator JARs (`~/.cache/firebase/emulators`). Runs `pnpm test:e2e`. On failure, uploads `playwright-report/` as a 7-day artifact.
+
+See [[reference/Testing]] for the full e2e setup details.
 
 ## Related pages
 

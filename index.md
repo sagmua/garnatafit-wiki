@@ -58,7 +58,7 @@ Complete catalog of all pages, organized by category. One-line summary per page.
 | Page | Summary |
 |------|---------|
 | [[reference/Project Setup]] | pnpm commands, dev server, first-admin bootstrap, env file setup |
-| [[reference/Testing]] | Jest + RTL conventions, node vs jsdom environments, REQ-NN labels, Playwright |
+| [[reference/Testing]] | Jest (115 unit tests, 24 suites) + Playwright e2e (17 tests, 5 specs, Firebase emulators) |
 | [[reference/Configuration]] | next.config, tsconfig, jest.config, eslint, postcss, tailwind, CI workflow |
 | [[reference/Environment Variables]] | All env var names with purpose (never values) |
 | [[reference/Conventions & Gotchas]] | Known quirks, naming oddities, and minor bugs in the current codebase |

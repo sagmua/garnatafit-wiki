@@ -2,8 +2,8 @@
 title: Project Setup
 tags: [domain/reference, status/implemented]
 status: implemented
-sources: ["CLAUDE.md", "package.json", "lib/firebase/admin.ts", "lib/firebase/client.ts"]
-updated: 2026-06-01
+sources: ["CLAUDE.md", "package.json", "lib/firebase/admin.ts", "lib/firebase/client.ts", "scripts/test-e2e.sh", "firebase.json"]
+updated: 2026-06-11
 ---
 
 > **Status:** ✅ Documented
@@ -17,17 +17,21 @@ updated: 2026-06-01
 - A Firebase project with Auth and Firestore enabled
 - A Resend account (for invite emails)
 - ngrok or similar tunnel for testing invite links remotely (Firebase requires HTTPS for sign-in links)
+- **For e2e tests only:** Firebase CLI (`npm install -g firebase-tools`), Java 21 (for emulator JARs), system Chrome
 
 ## Commands
 
 ```bash
-pnpm dev       # Start dev server at http://localhost:3000
-pnpm build     # Production build
-pnpm start     # Run production server
-pnpm lint      # Run ESLint
-pnpm test      # Run Jest unit tests
+pnpm dev         # Start dev server at http://localhost:3000
+pnpm build       # Production build
+pnpm start       # Run production server
+pnpm lint        # Run ESLint
+pnpm test        # Run Jest unit tests (115 tests, 24 suites)
 pnpm test:watch  # Jest watch mode
+pnpm test:e2e    # Run Playwright e2e tests against Firebase emulators (17 tests)
 ```
+
+`pnpm test:e2e` calls `scripts/test-e2e.sh`, which spins up Firebase emulators (Auth + Firestore), seeds fixture users, and runs Playwright tests on port 3001. The dev server on 3001 is started automatically by Playwright's `webServer` config if not already running. See [[reference/Testing]] for the full e2e architecture.
 
 ## Environment Variables
 
