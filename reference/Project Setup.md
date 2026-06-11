@@ -17,7 +17,7 @@ updated: 2026-06-11
 - A Firebase project with Auth and Firestore enabled
 - A Resend account (for invite emails)
 - ngrok or similar tunnel for testing invite links remotely (Firebase requires HTTPS for sign-in links)
-- **For e2e tests only:** Firebase CLI (`npm install -g firebase-tools`), Java 21 (for emulator JARs), system Chrome
+- **For e2e tests only:** Java 21 (for emulator JARs), system Chrome. Firebase CLI is a `devDependency` — `pnpm install` provides it, no global install required
 
 ## Commands
 

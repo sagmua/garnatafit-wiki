@@ -11,10 +11,14 @@
             "id": "295d39d9377c76e9",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "features/Classes.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "Classes"
             }
           }
         ]
@@ -49,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "vault",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -182,26 +186,32 @@
   },
   "active": "295d39d9377c76e9",
   "lastOpenFiles": [
+    "index.md",
+    "log.md",
+    "Untitled.canvas",
+    "log.md.tmp.1241407.9f53e214ca6a",
+    "index.md.tmp.1241407.2c41fa42562e",
+    "index.md.tmp.1241407.9dd19b482d05",
+    "data/Mock Data Layer.md.tmp.1241407.b4233a5e62e2",
+    "data/Mock Data Layer.md.tmp.1241407.afdd861a4c02",
+    "reference/Testing.md.tmp.1241407.5c70eddf9d9f",
+    "reference/Testing.md.tmp.1241407.38d9d14981d0",
+    "reference/Testing.md.tmp.1241407.1127cb5b314a",
+    "auth/Firebase Setup.md.tmp.1241407.6f75bdc47701",
+    "auth/Firebase Setup.md.tmp.1241407.4c2ca0a52c8d",
+    "features/Member Area.md",
+    "features/Plans & Credits.md",
+    "auth/Roles & Claims.md",
     "reference/Conventions & Gotchas.md",
-    "reference/Conventions & Gotchas.md.tmp.1137188.6f5afcdb0f3c",
     "reference/Environment Variables.md",
-    "reference/Environment Variables.md.tmp.1137188.0745f72c300a",
     "reference/Configuration.md",
-    "reference/Configuration.md.tmp.1137188.92070e9de809",
     "reference/Testing.md",
-    "reference/Testing.md.tmp.1137188.3e9f3a19b3ed",
     "reference/Project Setup.md",
-    "reference/Project Setup.md.tmp.1137188.ba8fa7a1fe49",
     "data/Mock Data Layer.md",
-    "data/Mock Data Layer.md.tmp.1137188.03384c523917",
     "ui/Layouts & Navigation.md",
-    "ui/Layouts & Navigation.md.tmp.1137188.f68a33f8886c",
     "ui/Styling & Theme.md",
-    "ui/Styling & Theme.md.tmp.1137188.71deace3e9ce",
     "ui/Component Library.md",
-    "ui/Component Library.md.tmp.1137188.5f803e292b1b",
     "features/Settings.md",
-    "features/Settings.md.tmp.1137188.4f8aa053604e",
     "features/Analytics.md",
     "features/Messages.md",
     "features/Classes.md",
@@ -212,11 +222,6 @@
     "auth/Route Protection.md",
     "auth/Profile & Onboarding.md",
     "auth/Login & Logout.md",
-    "auth/Invite & Join Flow.md",
-    "auth/Authentication Overview.md",
-    "overview/Domain Model.md",
-    "overview/Tech Stack.md",
-    "overview/Architecture.md",
-    "overview/Project Overview.md"
+    "auth/Invite & Join Flow.md"
   ]
 }

@@ -2,7 +2,7 @@
 title: Environment Variables
 tags: [domain/reference, status/implemented]
 status: implemented
-sources: ["lib/firebase/admin.ts", "lib/firebase/client.ts", "lib/email/resend.ts", "app/api/auth/invite/route.ts", "scripts/test-e2e.sh", "playwright.config.ts"]
+sources: ["lib/firebase/admin.ts", "lib/firebase/client.ts", "lib/email/resend.ts", "app/api/auth/invite/route.ts", "scripts/test-e2e.sh", "playwright.config.ts", "next.config.ts"]
 updated: 2026-06-11
 ---
 
@@ -58,10 +58,13 @@ Set by `scripts/test-e2e.sh` before Playwright runs. Never added to `.env.local`
 
 | Variable | Value in e2e | Purpose |
 |----------|-------------|---------|
-| `FIREBASE_AUTH_EMULATOR_HOST` | `127.0.0.1:9099` | Tells Firebase SDKs (Admin + client) to use the Auth emulator; also suppresses real email sends in `lib/email/resend.ts` |
+| `FIREBASE_AUTH_EMULATOR_HOST` | `127.0.0.1:9099` | Tells Firebase Admin SDK to use the Auth emulator; also suppresses real email sends in `lib/email/resend.ts` |
 | `FIRESTORE_EMULATOR_HOST` | `127.0.0.1:8080` | Tells Firebase Admin SDK to use the Firestore emulator |
 | `FIREBASE_ADMIN_PROJECT_ID` | `demo-garnatafit` | Project ID used by Admin SDK in emulator mode (no real project) |
 | `NEXT_PUBLIC_USE_EMULATORS` | `'true'` | Triggers `connectAuthEmulator` + `connectFirestoreEmulator` calls in `lib/firebase/client.ts` |
+| `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST` | `127.0.0.1:9099` | Auth emulator host+port read by `lib/firebase/client.ts` when connecting to the Auth emulator. Avoids hardcoded addresses in source |
+| `NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST` | `127.0.0.1:8080` | Firestore emulator host+port read by `lib/firebase/client.ts` when connecting to the Firestore emulator. Avoids hardcoded addresses in source |
+| `NEXT_TEST` | `'1'` | Switches `next.config.ts` `distDir` to `.next-test/`, isolating the test build from a concurrent dev session |
 
 ## Related pages
 

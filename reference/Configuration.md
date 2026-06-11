@@ -2,7 +2,7 @@
 title: Configuration
 tags: [domain/reference, status/implemented]
 status: implemented
-sources: ["next.config.ts", "tsconfig.json", "jest.config.ts", "eslint.config.mjs", "postcss.config.mjs", "tailwind.config.ts", "pnpm-workspace.yaml", ".github/workflows/claude.yml", ".github/workflows/e2e.yml", "playwright.config.ts", "firebase.json", "scripts/test-e2e.sh"]
+sources: ["next.config.ts", "tsconfig.json", "jest.config.ts", "eslint.config.mjs", "postcss.config.mjs", "tailwind.config.ts", "pnpm-workspace.yaml", ".github/workflows/claude.yml", ".github/workflows/e2e.yml", "playwright.config.ts", "firebase.json", "scripts/test-e2e.sh", "__tests__/e2e/constants.ts"]
 updated: 2026-06-11
 ---
 
@@ -12,11 +12,17 @@ updated: 2026-06-11
 
 ## next.config.ts
 
-Minimal. Only one customization:
+Two customizations:
+
 ```ts
 serverExternalPackages: ["firebase-admin"]
 ```
 Marks `firebase-admin` as an external package so it's not bundled by webpack — required for the Admin SDK to access the native Node.js environment correctly.
+
+```ts
+distDir: process.env.NEXT_TEST ? '.next-test' : '.next'
+```
+When `NEXT_TEST=1` is set (exported by `scripts/test-e2e.sh` before running Playwright), the build output goes into `.next-test/` instead of `.next/`. This isolates the test dev server from a concurrently running normal dev session, preventing the two `next dev` processes from corrupting each other's shared build manifests.
 
 ## tsconfig.json
 
@@ -82,9 +88,10 @@ allowBuilds:
 - `fullyParallel: true`, Chromium-only (`channel: 'chrome'` — system Chrome)
 - `globalSetup: './__tests__/e2e/global.setup.ts'`
 - `baseURL: 'http://localhost:3001'` (port 3001, not 3000, to avoid colliding with a running dev session)
+- `expect: { timeout: 10_000 }` — global assertion timeout of 10 seconds
 - `reporter: 'html'`
 - CI: `forbidOnly`, `retries: 2`, `workers: 1`
-- `webServer`: `pnpm dev --port 3001`; `reuseExistingServer: !process.env.CI`
+- `webServer`: `NEXT_TEST=1 pnpm dev --port 3001`; `reuseExistingServer: !process.env.CI`
 
 ## firebase.json
 
@@ -95,7 +102,13 @@ Declares the Firebase emulator configuration used by `scripts/test-e2e.sh` and C
 
 ## scripts/test-e2e.sh
 
-Shell wrapper that sets all required emulator env vars before invoking Playwright via `firebase emulators:exec`. Exports: `FIREBASE_AUTH_EMULATOR_HOST`, `FIRESTORE_EMULATOR_HOST`, `FIREBASE_ADMIN_PROJECT_ID=demo-garnatafit`, `NEXT_PUBLIC_USE_EMULATORS=true`, and stub `NEXT_PUBLIC_FIREBASE_*` client vars so Next.js can start without real Firebase credentials.
+Shell wrapper that sets all required env vars before invoking Playwright via `firebase emulators:exec`. Key exports:
+
+- `NEXT_TEST=1` — causes `next.config.ts` to use `.next-test/` as `distDir`, isolating the test build
+- `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099` — read by `lib/firebase/client.ts` for the Auth emulator connection
+- `NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=127.0.0.1:8080` — read by `lib/firebase/client.ts` for the Firestore emulator connection
+- `FIREBASE_AUTH_EMULATOR_HOST`, `FIRESTORE_EMULATOR_HOST` — server-side (Admin SDK) emulator routing
+- `FIREBASE_ADMIN_PROJECT_ID=demo-garnatafit`, `NEXT_PUBLIC_USE_EMULATORS=true`, and stub `NEXT_PUBLIC_FIREBASE_*` client vars so Next.js can start without real Firebase credentials
 
 ## GitHub Actions Workflows
 
@@ -113,7 +126,11 @@ Triggers only when the event body/title contains `@claude`. Job: `ubuntu-latest`
 
 ### `e2e.yml`
 
-Runs e2e tests on every **pull request targeting `main`**. Job: `ubuntu-latest`, 15-minute timeout. Requires Java 21 (Temurin) for Firebase emulator JARs. Caches: pnpm store, Playwright browsers (`~/.cache/ms-playwright`), Firebase emulator JARs (`~/.cache/firebase/emulators`). Runs `pnpm test:e2e`. On failure, uploads `playwright-report/` as a 7-day artifact.
+Runs e2e tests on every **pull request targeting `main`**. Job: `ubuntu-latest`, 15-minute timeout. Requires Java 21 (Temurin) for Firebase emulator JARs. Caches: pnpm store, Playwright browsers (`~/.cache/ms-playwright`), Firebase emulator JARs (`~/.cache/firebase/emulators`, keyed on `runner.os` + `package.json` hash). Runs `pnpm test:e2e`. On failure, uploads `playwright-report/` as a 7-day artifact.
+
+Key corrections made during PR review:
+- Playwright browser install uses `chrome` (not `chromium`) to match `channel: 'chrome'` in `playwright.config.ts`
+- Firebase CLI is no longer installed via `npm install -g firebase-tools`; it is a `devDependency` and arrives via `pnpm install`
 
 See [[reference/Testing]] for the full e2e setup details.
 

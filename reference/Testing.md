@@ -2,7 +2,7 @@
 title: Testing
 tags: [domain/reference, status/implemented]
 status: implemented
-sources: ["jest.config.ts", "jest.setup.ts", "__tests__/middleware.test.ts", "app/api/auth/", "app/api/plans/", "app/api/members/", "app/api/member/", "lib/credits/", "lib/member/", "app/(member)/", "playwright.config.ts", "firebase.json", "scripts/test-e2e.sh", ".github/workflows/e2e.yml", "__tests__/e2e/global.setup.ts", "__tests__/e2e/auth.spec.ts", "__tests__/e2e/users.spec.ts", "__tests__/e2e/member-home.spec.ts", "__tests__/e2e/member-classes.spec.ts", "__tests__/e2e/member-profile.spec.ts"]
+sources: ["jest.config.ts", "jest.setup.ts", "__tests__/middleware.test.ts", "app/api/auth/", "app/api/plans/", "app/api/members/", "app/api/member/", "lib/credits/", "lib/member/", "app/(member)/", "playwright.config.ts", "firebase.json", "scripts/test-e2e.sh", ".github/workflows/e2e.yml", "__tests__/e2e/constants.ts", "__tests__/e2e/global.setup.ts", "__tests__/e2e/auth.spec.ts", "__tests__/e2e/users.spec.ts", "__tests__/e2e/member-home.spec.ts", "__tests__/e2e/member-classes.spec.ts", "__tests__/e2e/member-profile.spec.ts", "lib/firebase/client.ts", "lib/email/resend.ts", "next.config.ts"]
 updated: 2026-06-11
 ---
 
@@ -120,7 +120,8 @@ Then `jest.requireMock('@/lib/firebase/admin')` is used to access and configure 
 - `fullyParallel: true`, Chromium-only (system Chrome via `channel: 'chrome'`)
 - `baseURL: 'http://localhost:3001'` (dev server on port 3001, not 3000, to avoid colliding with a running dev session)
 - `globalSetup: './__tests__/e2e/global.setup.ts'`
-- `webServer`: starts `pnpm dev --port 3001`; `reuseExistingServer: !process.env.CI`
+- `expect: { timeout: 10_000 }` — global assertion timeout (10 seconds) applied to all `expect` calls
+- `webServer`: starts `NEXT_TEST=1 pnpm dev --port 3001`; `reuseExistingServer: !process.env.CI`
 - CI: `forbidOnly`, `retries: 2`, `workers: 1`
 
 **`firebase.json`:**
@@ -129,18 +130,30 @@ Then `jest.requireMock('@/lib/firebase/admin')` is used to access and configure 
 - Emulator UI disabled
 
 **`scripts/test-e2e.sh`:**
-- Exports emulator env vars (`FIREBASE_AUTH_EMULATOR_HOST`, `FIRESTORE_EMULATOR_HOST`, `FIREBASE_ADMIN_PROJECT_ID=demo-garnatafit`, `NEXT_PUBLIC_USE_EMULATORS=true`, and stub client SDK vars so Next.js starts without real Firebase config)
+- Exports `NEXT_TEST=1` so the test dev server writes its build output to `.next-test/` rather than `.next/`, preventing build manifest corruption if a dev session is running concurrently
+- Exports `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099` and `NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=127.0.0.1:8080` so the client SDK picks up emulator endpoints at runtime without hardcoded values
+- Exports the remaining emulator env vars: `FIREBASE_AUTH_EMULATOR_HOST`, `FIRESTORE_EMULATOR_HOST`, `FIREBASE_ADMIN_PROJECT_ID=demo-garnatafit`, `NEXT_PUBLIC_USE_EMULATORS=true`, and stub `NEXT_PUBLIC_FIREBASE_*` client vars so Next.js starts without real Firebase config
 - Runs: `firebase emulators:exec --only auth,firestore --project demo-garnatafit -- "pnpm exec playwright test ..."`
 
 **Emulator hooks in source code:**
 - `lib/firebase/admin.ts` — skips `cert()` when `FIREBASE_AUTH_EMULATOR_HOST` is set; uses `initializeApp({ projectId })` instead (credential-free)
-- `lib/firebase/client.ts` — calls `connectAuthEmulator` + `connectFirestoreEmulator` when `typeof window !== 'undefined' && NEXT_PUBLIC_USE_EMULATORS === 'true'`; wrapped in try/catch for HMR safety
-- `lib/email/resend.ts` — early-returns (skips real email sends) when `FIREBASE_AUTH_EMULATOR_HOST` is set
+- `lib/firebase/client.ts` — calls `connectAuthEmulator` + `connectFirestoreEmulator` when `typeof window !== 'undefined' && NEXT_PUBLIC_USE_EMULATORS === 'true'`; wrapped in try/catch for HMR safety. Emulator host/port are read from `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST` and `NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST` env vars (no hardcoded addresses)
+- `lib/email/resend.ts` — `new Resend()` is instantiated lazily inside `sendInviteEmail()` rather than at module load time; early-returns (skips real email sends) when `FIREBASE_AUTH_EMULATOR_HOST` is set. The lazy init prevents a module-load crash in CI where `RESEND_API_KEY` is absent
+
+### Shared Constants (`__tests__/e2e/constants.ts`)
+
+Centralizes all fixture data shared between `global.setup.ts` and the spec files:
+
+- `ADMIN_STATE` / `MEMBER_STATE` — paths to the Playwright `storageState` JSON files (`__tests__/e2e/.auth/admin.json` and `.auth/member.json`)
+- `ADMIN` / `MEMBER` — credential objects (`email`, `password`, `uid`) for the seeded fixture users
+
+Spec files import from `constants.ts` instead of from `global.setup.ts`. This avoids spec workers pulling in `firebase-admin` (a native Node module) as a transitive import from the setup file, which would crash Playwright browser workers.
 
 ### Global Setup (`__tests__/e2e/global.setup.ts`)
 
-Runs once before all specs:
-1. **Clears emulators** via REST DELETE on both Auth and Firestore emulator endpoints
+Runs once before all specs. Imports `ADMIN`, `MEMBER`, `ADMIN_STATE`, `MEMBER_STATE` from `constants.ts`.
+
+1. **Clears emulators** via REST DELETE on both Auth and Firestore emulator endpoints. Errors are thrown with a descriptive message (no silent swallow) so CI fails loudly if emulator cleanup fails
 2. **Seeds admin user** (`uid: e2e-admin-001`, `admin-e2e@test.com`) — `role: admin` custom claim + `admins` Firestore doc (`profileComplete: true`)
 3. **Seeds member user** (`uid: e2e-member-001`, `member-e2e@test.com`) — `role: member` custom claim + `members` Firestore doc (`creditsAvailable: 8`, phone/address fields) + a `creditBatches` sub-document (10 granted / 8 remaining, name: "Starter Pack")
 4. **Signs each user in** via Auth emulator REST API (`identitytoolkit.googleapis.com/v1/accounts:signInWithPassword`), exchanges the ID token for a session cookie via `POST /api/auth/login`, saves Playwright `storageState` to `__tests__/e2e/.auth/admin.json` and `__tests__/e2e/.auth/member.json`
@@ -188,8 +201,10 @@ The `.auth/` directory is gitignored (`.gitignore` entry: `/__tests__/e2e/.auth/
 | Test | Assertion |
 |------|-----------|
 | Form pre-filled | Name, Surname, Phone, City fields contain seeded values |
-| Edit name and save | Changes name, saves, "Saved" feedback appears |
+| Edit name and save | Changes name to 'Updated', saves, "Saved" feedback appears |
 | Password section | 3 password fields visible; "Email me a reset link" button + "Update password" button present |
+
+Note: the edit test mutates Firestore state (sets the member's display name to 'Updated'). `users.spec.ts` intentionally asserts on the member's email address rather than name, so it remains stable across spec-file ordering.
 
 ### CI Workflow (`.github/workflows/e2e.yml`)
 
@@ -201,11 +216,10 @@ Steps:
 3. Java 21 (Temurin) — required for Firebase emulator JARs
 4. `pnpm install --frozen-lockfile`
 5. Cache Playwright browsers (`~/.cache/ms-playwright`, keyed on `pnpm-lock.yaml`)
-6. `pnpm exec playwright install chromium --with-deps`
-7. Firebase CLI installed globally via `npm install -g firebase-tools`
-8. Cache Firebase emulator JARs (`~/.cache/firebase/emulators`)
-9. `pnpm test:e2e`
-10. On failure: upload `playwright-report/` as artifact (7-day retention)
+6. `pnpm exec playwright install chrome --with-deps` (matches `channel: 'chrome'` in `playwright.config.ts`; was `chromium` before the PR-review fix)
+7. Cache Firebase emulator JARs (`~/.cache/firebase/emulators`, keyed on `runner.os` + `package.json` hash). Firebase CLI is declared in `devDependencies` and installed by `pnpm install` — no separate global install step needed
+8. `pnpm test:e2e`
+9. On failure: upload `playwright-report/` as artifact (7-day retention)
 
 Note: the existing `claude.yml` workflow (Claude Code bot) is unchanged. This is a second, independent workflow file.
 
